@@ -1,0 +1,13 @@
+{
+  "apps": [
+    {
+      "name": "django-react-notes",
+      "args": ["runserver", "0.0.0.0:8000"],
+      "instances": "1", 
+      "wait_ready": true, 
+      "script": "manage.py",
+      "exec_mode": "fork",
+      "exec_interpreter": "python3"
+    }
+  ]
+}

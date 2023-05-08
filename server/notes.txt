@@ -1,0 +1,211 @@
+running on ubuntu server: 💲 pm2 start --name django-react-notes python3 ./manage.py runserver 0.0.0.0:8000
+
+
+Venv and instalations
+======================
+💲 python -m venv venv
+💲 source venv/Scripts/activate
+ubuntu -->  💲 python3 -m venv venv
+            💲 source venv/bin/activate
+💲 pip install django
+💲 django-admin startproject mynotes
+💲 pip install djangorestframework
+💲 pip install django-cors-headers
+💲 python manage.py runserver
+💲 python manage.py startapp api
+
+
+connecting the api app to the main project
+---------------------------------------------
+mynotes - is the main django project we need to connect the api app to the main project.
+go to mynotes/settings.py --> add to the [INSTALLED_APPS] 'api.apps.ApiConfig',
+
+
+
+Generate url and connect it
+-----------------------------
+api/views ---> 
+  from django.http import JsonResponse
+  # Create your views here.
+
+  def getRoutes(request):
+  # safe meanse that we can return more data then python dictionary
+      return JsonResponse('Our API', safe=False)
+
+go to api folder create new file urls.py
+in this file we'll create all the url routing for the api app
+    
+    from django.urls import path
+    # from views import getRoutes
+    from . import views
+
+    # create the url patterns
+    urlpatterns = [
+        path('', views.getRoutes, name='routes')
+    ]
+
+connect api app urls.py to our main project
+--------------------------------------------
+    from django.contrib import admin
+    from django.urls import path, include
+
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        path('api/', include('api.urls'))
+    ]
+
+
+    inside modules.py we create the database replica (in owr case ./api/modules.py)
+
+            class Note(models.Model):
+            body = models.TextField(null=True, blank=True)
+            updated = models.DateTimeField(auto_now=True)
+            created = models.DateTimeField(auto_now_add=True) # auto_now_add - will be saved on the creation only
+
+            # representation string for the admin pannel
+            def __str__(self):
+                return self.body[0:50] # the representaion will be first 50 characters
+
+
+    runnung migrations:
+    ---------------------
+    runnung the default django migrations --> default tables will be created
+    💲 python manage.py migrate
+
+
+    adding first created model into migrations:
+        💲 python manage.py makemigrations
+            -->   💲 python manage.py migrate
+
+
+admin pannel:
+--------------
+http://127.0.0.1:8000/admin/
+to access the pannel we need to create auser
+    
+creating a user
+----------------
+💲 python manage.py createsuperuser
+
+adding Note model to the admin pannel
+---------------------------------------
+Go to --> api/adding.py --> import the model and register it with the admin pannel
+       ---> from .models import Note
+            admin.site.register(Note)
+
+working with django rest framework
+-----------------------------------
+💲 pip install djangorestframework
+ --> ad to INSTALLED_APPS
+
+ --> in vies.py change :
+    from rest_framework import Response
+    "return JsonResponse(routes, safe=False)" to "return Response(routes)"
+
+adding notes/ route
+--------------------
+add to api/views.py
+    --> 
+        @api_view(['GET'])
+        def getNotes(request):
+            return Response('NOTE')
+
+add to api/urls.py
+    --> add to [urlpatterns] -->
+        path('notes/', views.getNotes, name='notes'),
+
+serialising the data in order to display it as json in the Response
+----------------------------------------------------------------------
+
+changes in api/vies.py:
+    --> 
+        from .models import Note
+        @api_view(['GET'])
+        def getNotes(request):
+            notes = notes.objects.all()
+            return Response('NOTE')
+
+creating a api/serializers.py file:
+    --> 
+        from rest_framework.serializers import ModelSerializer
+        from .models import Note
+
+        class NoteSerializer(ModelSerializer):
+        class Meta:
+            model = Note
+            # fields = ['body', 'updated']
+            fields = '__all__'
+
+Go into views:
+        from serializers import NoteSerializer
+        @api_view(['GET'])
+        def getNotes(request):
+            notes = Note.objects.all()
+            serializer = NoteSerializer(notes, many=True) # many specifies if we want to return one or multiple objects
+            return Response(serializer.data)
+
+
+Adding rout for retreaving a single Note:
+-------------------------------------------
+add to api/urls.py [urlpatterns] --> path('notes/<str:pk>', views.getNote, name='note'),
+
+add to api/viws.py 
+    -->
+        @api_view(['GET'])
+        def getNote(request, pk):
+            notes = Note.objects.get(id=pk)
+            serializer = NoteSerializer(notes, many=False)
+            return Response(serializer.data)
+
+
+react portion ---> 
+
+
+addind django-cors-headers
+https://github.com/adamchainz/django-cors-headers
+💲 pip install django-cors-headers
+
+inside mynotes/settings.py
+    -->
+        INSTALLED_APPS = [
+            ...,
+            "corsheaders",
+            ...,
+        ]
+
+        MIDDLEWARE = [
+            ...,
+            "corsheaders.middleware.CorsMiddleware",
+            ...,
+        ]
+
+add one of the two options to mynotes/settings.py for final configuration:
+
+    CORS_ALLOWED_ORIGINS = [
+        "http://127.0.0.1:3000",
+    ]
+
+    CORS_ALLOW_ALL_ORIGINS: True
+
+
+For managing status codes: https://www.django-rest-framework.org/api-guide/status-codes/
+
+Integrate React project with Django
+======================================
+1) Drag the frontend folder into the root directory
+2) npm run build
+3) direct django to know the location of index.html
+        --> go to main projrcts settings.py
+            TEMPLATES = [..., 'DIRS': [BASE_DIR / 'frontend/build'] ,...]
+
+4) configure the react static files inside djando app
+        --> go to main projrcts settings.py
+                STATICFILES_DIRS = [
+                    BASE_DIR / 'frontend/build/static'
+                ]
+
+5)  rendering the react template by django:
+        --> Go to main project mynotes/urls.py file
+
+            from django.views.generic import TemplateView
+            urlpatterns = [..., path('', TemplateView.as_view(template_name='index.html')), ...]

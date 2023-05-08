@@ -1,0 +1,54 @@
+https://v5.reactrouter.com/web/guides/quick-start
+npm install react-router-dom
+
+mumbleui.com/icons
+
+Hacking Djangos page reload BUG with React Router dom (❗important: not recomended)
+-----------------------------------------------------------------------------------
+https://reactrouter.com/en/main/router-components/hash-router
+
+Serverside rendering with django creates problem when we are tring to access more complicated rout then configured un the main urls.py file
+
+Go to App.js
+    --> change:
+          import { BrowserRouter } from "react-router-dom"
+           To
+            import { HashRouter as BrowserRouter } from "react-router-dom"
+
+
+
+
+To other solutions to Djangos `page reload BUG with React Router dom` - by chat GPT
+=====================================================================================
+
+
+If you're using Django on the backend and you're experiencing issues with URL routing, there are a few things you can try to resolve the issue without using HashRouter.
+
+Use the catch-all route in your Django urls.py file: Instead of the empty path '' route, you can use a catch-all route that matches any path and directs it to your React app. For example:
+python
+Copy code
+from django.urls import path, re_path
+from django.views.generic import TemplateView
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
+    re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
+]
+This route matches any URL path and returns the index.html template, which contains your React app. Note that this route should be the last route in the urlpatterns list.
+
+Use the historyApiFallback option in your webpack configuration: If you're using webpack to build your React app, you can use the historyApiFallback option in your webpack configuration to redirect any unknown URLs to your index.html file. For example:
+java
+Copy code
+// webpack.config.js
+
+module.exports = {
+  // ...
+  devServer: {
+    historyApiFallback: true,
+  },
+  // ...
+};
+This option tells webpack's development server to serve the index.html file for any unknown URLs, which allows React Router to handle the URL routing.
+
+By using one of these solutions, you should be able to handle URL routing without resorting to HashRouter.
