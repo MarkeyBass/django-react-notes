@@ -1,4 +1,35 @@
-running on ubuntu server: 💲 pm2 start --name django-react-notes python3 ./manage.py runserver 0.0.0.0:8000
+running on ubuntu server with pm2:
+https://stackoverflow.com/questions/41508212/use-pm2-with-django
+
+{
+  "apps": [
+    {
+      "name": "{name}",
+      "cwd": "/srv/{name}",
+      "args": "runserver",
+      "script": "manage.py",
+      "exec_mode": "fork",
+      "exec_interpreter": "python"
+    }
+  ]
+}
+
+{       
+   apps:            
+      [{
+        name: "djnago_with_pm2",          
+        script: "manage.py",
+        args: ["runserver", "127.0.0.1:8000"], 
+        exec_mode: "fork", 
+        instances: "1", 
+        wait_ready: true, 
+        autorestart: false, 
+        max_restarts: 5, 
+        interpreter : "python" 
+      }] 
+}    
+
+💲💲💲 pm2 start pm2_django_notes.json 
 
 
 Venv and instalations
@@ -13,6 +44,17 @@ ubuntu -->  💲 python3 -m venv venv
 💲 pip install django-cors-headers
 💲 python manage.py runserver
 💲 python manage.py startapp api
+
+
+In order to run Django in the backgroung:
+-------------------------------------------
+python manage.py runserver &
+
+In order to run Django in the backgroung and write the logs into a file:
+--------------------------------------------------------------------------
+nohup python manage.py runserver > server.log 2>&1 &
+
+
 
 
 connecting the api app to the main project

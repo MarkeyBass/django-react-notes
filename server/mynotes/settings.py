@@ -144,7 +144,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3002",
     "http://localhost:3003",
     "http://markeybass.com:8000",
-    "thhp://45.9.190.107:8000"
+    "http://45.9.190.107:8000"
 ]
 
 # CORS_ALLOW_ALL_ORIGINS = True
